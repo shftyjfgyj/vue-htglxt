@@ -1,0 +1,24 @@
+# Docker 构建上下文排除项。
+#
+# 没有这个文件时，`docker build` 会把整个 apps/server 目录（含 node_modules、
+# uploads、dist、日志）打包传给守护进程 —— 构建变慢，而且 .env 有被 COPY 进镜像的风险。
+# 所有运行时配置都应由平台的环境变量注入，绝不烘进镜像。
+
+# 依赖与构建产物（镜像内会重新装、重新编译）
+node_modules
+dist
+
+# 运行时数据：容器文件系统是临时的，这些本就不该进镜像
+uploads
+logs
+
+# 环境变量：机密只走平台注入
+.env
+.env.*
+!.env.example
+
+# 本地临时文件
+.tmp-*
+*.log
+npm-debug.log*
+.DS_Store

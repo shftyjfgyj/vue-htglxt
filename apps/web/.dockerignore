@@ -1,0 +1,15 @@
+# Docker 构建上下文排除项（前端）。
+# 镜像内会重新 npm ci 并 vite build，本地依赖与产物不必传进上下文。
+
+node_modules
+dist
+
+# E2E 与测试产物
+test-results
+e2e-report
+playwright-report
+e2e/.auth
+
+*.log
+.DS_Store
+.env.local
