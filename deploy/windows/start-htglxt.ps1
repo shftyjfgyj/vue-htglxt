@@ -1,6 +1,6 @@
 ﻿# 启动 htglxt（后端 Node 3001 + nginx 8080 + 守护进程）
 $ErrorActionPreference = 'Continue'
-$repo = 'E:\Desktop\try-again\vue-htglxt'
+$repo = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $nginxRoot = Join-Path $repo '.tmp-nginx\nginx-1.28.0'
 $node = (Get-Command node).Source
 

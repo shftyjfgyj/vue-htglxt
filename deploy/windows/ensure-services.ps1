@@ -1,5 +1,6 @@
 ﻿# 服务守护：端口不通才拉起（幂等，可安全地被计划任务每 5 分钟执行一次）
-$repo = 'E:\Desktop\try-again\vue-htglxt'
+# 仓库根由脚本位置推导（deploy\windows\*.ps1 的上两级），不写死绝对路径
+$repo = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $started = @()
 
 function Test-Port([int]$port) {

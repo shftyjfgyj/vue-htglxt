@@ -1,5 +1,5 @@
 ﻿# 停止 htglxt（保留数据库与文件，仅停服务）
-$repo = 'E:\Desktop\try-again\vue-htglxt'
+$repo = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $nginxRoot = Join-Path $repo '.tmp-nginx\nginx-1.28.0'
 
 if (Get-Process nginx -ErrorAction SilentlyContinue) {

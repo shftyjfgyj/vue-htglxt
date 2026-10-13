@@ -79,7 +79,7 @@ vue-htglxt/
 
 | 项 | 值 |
 | --- | --- |
-| 访问地址 | http://127.0.0.1:8080 （局域网 http://192.168.0.82:8080） |
+| 访问地址 | http://127.0.0.1:8080 （局域网 http://<局域网IP>:8080） |
 | 演示账号 | admin / Admin@123456（**登录后请立即改密码**） |
 | 启动 / 停止 / 状态 | `deploy\windows\start-htglxt.ps1` / `stop-htglxt.ps1` / `status-htglxt.ps1` |
 | 部署验收 | `node deploy/windows/verify-deploy.mjs`（20 项，全部经 nginx） |

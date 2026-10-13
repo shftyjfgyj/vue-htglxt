@@ -10,7 +10,7 @@
 | 系统 | Windows 11 家庭中文版 Build 26200 | ✅ 满足 Docker Desktop 要求 |
 | 内存 | 15.7 GB（当前可用 4.9 GB） | ⚠️ Docker 建议限 5 GB，给本机服务留余量 |
 | C 盘可用 | **12.6 GB** | ⚠️ **必须把 Docker 数据目录改到 D 盘**（D 盘剩 73 GB） |
-| 当前用户 | `阿稚\31513`，属 Administrators 组但当前未提权 | ⚠️ 安装时会弹 UAC，点「是」即可 |
+| 当前用户 | `<用户名>`，属 Administrators 组但当前未提权 | ⚠️ 安装时会弹 UAC，点「是」即可 |
 | WSL2 | **未安装** | ⚠️ 安装过程会提示安装 WSL2，**需要重启电脑** |
 
 ## 1. 安装 Docker Desktop
@@ -63,7 +63,7 @@ docker run --rm hello-world   # 能打印 Hello from Docker!
 工件已经准备好：`docker/docker-compose.rehearsal.yml` + `docker/.env.rehearsal`。
 
 ```powershell
-cd E:\Desktop\try-again\vue-htglxt
+cd <仓库路径>
 
 # 3.1 构建 api + web 两个镜像（首次 3~8 分钟，取决于网速）
 docker compose -f docker/docker-compose.rehearsal.yml --env-file docker/.env.rehearsal build
@@ -134,7 +134,7 @@ vite.config.ts(1,36): error TS2307: Cannot find module 'node:url'
 | | 本地 | 容器 |
 | --- | --- | --- |
 | `apps/web/package.json` 是否声明 `@types/node` | ❌ 没有 | ❌ 没有 |
-| 类型从哪来 | **`E:\Desktop\try-again\node_modules\@types\node`**（旁边老项目装的，TS 向上查找 node_modules 命中） | 没有父目录 → 直接报错 |
+| 类型从哪来 | **`<仓库父目录>\node_modules\@types\node`**（旁边老项目装的，TS 向上查找 node_modules 命中） | 没有父目录 → 直接报错 |
 
 **修复**：在 `apps/web/package.json` 显式声明 `@types/node` 并更新锁文件（依赖要用就必须声明，不能靠环境巧合）。
 

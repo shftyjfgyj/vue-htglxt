@@ -1,6 +1,6 @@
 ﻿# htglxt 守护进程：每 5 分钟检查一次，端口不通就拉起服务（幂等）
 # 由启动文件夹中的 htglxt-watchdog.vbs 以隐藏窗口方式常驻
-$repo = 'E:\Desktop\try-again\vue-htglxt'
+$repo = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $logDir = Join-Path $repo 'logs'
 New-Item -ItemType Directory -Force -Path $logDir | Out-Null
 $logFile = Join-Path $logDir 'watchdog.log'

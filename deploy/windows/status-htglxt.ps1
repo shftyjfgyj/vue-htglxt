@@ -1,6 +1,4 @@
 ﻿# 查看 htglxt 运行状态与访问地址
-$repo = 'E:\Desktop\try-again\vue-htglxt'
-
 Write-Host '=== 进程 ===' -ForegroundColor Cyan
 $api = Get-CimInstance Win32_Process -Filter "Name='node.exe'" | Where-Object { $_.CommandLine -like '*apps\server\dist\index.js*' }
 $nginxProc = Get-Process nginx -ErrorAction SilentlyContinue
@@ -21,6 +19,10 @@ try { $f = Invoke-WebRequest 'http://127.0.0.1:8080/' -UseBasicParsing -TimeoutS
 
 Write-Host ''
 Write-Host '=== 访问地址 ===' -ForegroundColor Green
+# 局域网 IP 动态探测，不写死：换机器、换网络都不必改脚本
+$lanIp = Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
+  Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254.*' -and $_.PrefixOrigin -ne 'WellKnown' } |
+  Select-Object -First 1 -ExpandProperty IPAddress
 Write-Host '  本机   : http://127.0.0.1:8080'
-Write-Host '  局域网 : http://192.168.0.82:8080'
-Write-Host '  账号   : admin / Admin@123456（请登录后立即修改）'
+Write-Host ('  局域网 : ' + $(if ($lanIp) { 'http://' + $lanIp + ':8080' } else { '未检测到局域网 IPv4' }))
+Write-Host '  账号   : admin /（初始口令见 .env 的 SEED_ADMIN_PASSWORD，首次登录后请立即修改）'

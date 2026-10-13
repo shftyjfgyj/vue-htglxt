@@ -3,10 +3,11 @@
 # deploy/linux/*.sh 会以 “\r: command not found” 失败 —— 这类问题排查起来很费时间。
 * text=auto eol=lf
 
-# Windows 专用脚本保留 CRLF（PowerShell / cmd 对 LF 的兼容性不如 bash 稳定）
+# Windows 专用脚本保留 CRLF（PowerShell / cmd / WSH 对 LF 的兼容性不如 bash 稳定）
 *.ps1 text eol=crlf
 *.bat text eol=crlf
 *.cmd text eol=crlf
+*.vbs text eol=crlf
 
 # 二进制文件不做任何换行或编码转换
 *.jpg  binary
