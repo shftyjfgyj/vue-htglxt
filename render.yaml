@@ -1,0 +1,79 @@
+# =====================================================================
+# Render Blueprint（免费方案 A 的后端部分）
+#
+# 用法：把这个仓库推到 GitHub，然后在 Render 里 New → Blueprint，
+# 选中仓库即可按下面的定义创建服务。
+#
+# 数据库不在 Render 上：免费的 Render Postgres 30 天就过期，而且是 PostgreSQL；
+# 本项目用 MySQL，所以数据库走 Aiven（见 docs/部署-免费方案A.md）。
+#
+# 标了 sync: false 的环境变量不会进仓库，需要你在 Render 控制台里逐项填。
+# =====================================================================
+services:
+  - type: web
+    name: htglxt-server
+    runtime: docker
+    plan: free
+    # 选新加坡：对中国大陆访问比美区快一些
+    region: singapore
+    rootDir: apps/server
+    dockerfilePath: ./Dockerfile
+    # 这个健康检查会真的探一次数据库（/health/live 则只探进程）
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TZ
+        value: Asia/Shanghai
+
+      # ---------- 上传走对象存储 ----------
+      # 免费实例的容器文件系统是临时的，重新部署或休眠重建后
+      # uploads 里的封面、头像会全部丢失，所以线上必须用 s3。
+      - key: STORAGE_DRIVER
+        value: s3
+      - key: S3_REGION
+        value: auto
+      - key: S3_KEY_PREFIX
+        value: uploads/
+
+      # ---------- 以下需要在控制台填写 ----------
+      # 数据库（Aiven 控制台 → MySQL 服务 → Overview 里的连接信息）
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        sync: false
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_DATABASE
+        sync: false
+      # Aiven 免费档 max_connections 只有 76，连接池别开大
+      - key: DB_CONNECTION_LIMIT
+        value: "5"
+      # Aiven 强制要求 SSL；require = 加密但不校验证书链
+      - key: DB_SSL
+        value: require
+
+      # JWT：生产环境会拒绝 dev- 开头的默认值，必须换成随机串
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+
+      # 前端域名，例如 https://htglxt.pages.dev（逗号分隔可填多个）
+      - key: CORS_ORIGIN
+        sync: false
+
+      # Cloudflare R2（或其它 S3 兼容服务）
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
+      - key: S3_PUBLIC_BASE_URL
+        sync: false

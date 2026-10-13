@@ -1,0 +1,99 @@
+# =====================================================================
+# 本机 Docker 演练：完整走一遍"生产那套镜像"，但用本地 MySQL 容器
+#   - web 映射到 8090（避开本机 nginx 的 8080 与后端 3001，互不干扰）
+#   - 用镜像内置的 apps/web/nginx.conf（HTTP 版，含 resolver 修正）
+#   - 迁移带 SEED_DEMO=false，演练"生产空系统"
+# 用法见 docs/部署-本机Docker演练.md
+# =====================================================================
+services:
+  mysql:
+    # 国内直连 Docker Hub 会超时，这里走加速源（可换成你的阿里云专属地址）
+    image: ${MYSQL_IMAGE:-docker.m.daocloud.io/library/mysql:8.0}
+    container_name: htglxt-rehearsal-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?请在 .env.rehearsal 里设置}
+      MYSQL_DATABASE: htglxt_v2
+      TZ: Asia/Shanghai
+    command: >-
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --ngram_token_size=2
+    volumes:
+      - rehearsal-mysql:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  api:
+    build:
+      context: ../apps/server
+      dockerfile: Dockerfile
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:-docker.m.daocloud.io/library/node:22-bookworm-slim}
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmmirror.com}
+    image: htglxt-api:rehearsal
+    container_name: htglxt-rehearsal-api
+    restart: unless-stopped
+    env_file:
+      - .env.rehearsal
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      TZ: Asia/Shanghai
+    volumes:
+      - rehearsal-upload:/app/uploads
+    expose:
+      - "3001"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3001/health/live"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # 一次性迁移：docker compose -f docker/docker-compose.rehearsal.yml --env-file docker/.env.rehearsal --profile tools run --rm migrate
+  migrate:
+    build:
+      context: ../apps/server
+      dockerfile: Dockerfile
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:-docker.m.daocloud.io/library/node:22-bookworm-slim}
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmmirror.com}
+    image: htglxt-api:rehearsal
+    profiles: ["tools"]
+    env_file:
+      - .env.rehearsal
+    environment:
+      NODE_ENV: production
+      SEED_DEMO: "false"
+    command: ["node", "dist/db/migrate.js"]
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  web:
+    build:
+      context: ../apps/web
+      dockerfile: Dockerfile
+      args:
+        NODE_IMAGE: ${NODE_IMAGE_WEB:-docker.m.daocloud.io/library/node:22-alpine}
+        NGINX_IMAGE: ${NGINX_IMAGE:-docker.m.daocloud.io/library/nginx:1.27-alpine}
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmmirror.com}
+    image: htglxt-web:rehearsal
+    container_name: htglxt-rehearsal-web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "8090:80"
+
+volumes:
+  rehearsal-mysql:
+  rehearsal-upload:

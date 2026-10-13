@@ -1,0 +1,8 @@
+# Cloudflare Pages / Netlify 的 SPA 回退规则。
+# 前端是 history 模式的单页应用，直接访问 /dashboard、/content/articles/123/view
+# 这类深层地址时，托管平台会去找同名文件而返回 404 —— 这条规则让所有路径
+# 都回退到 index.html（状态码 200，而不是 302，避免地址栏被改写）。
+#
+# 注意：后端 API 走独立域名（VITE_API_BASE_URL 指向 Render），
+# 因此这里不需要为 /api 留例外；若日后改成同域反代，务必把 /api 排除在回退之外。
+/*    /index.html   200

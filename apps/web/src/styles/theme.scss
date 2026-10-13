@@ -1,0 +1,230 @@
+/* =============================================================================
+   设计令牌（Design Tokens）
+   - 品牌色：校样朱红系（沿用「现状骨架 + B·校样台色彩」的取舍）
+   - 中性色：暖灰阶梯，配暖纸底，不再发冷
+   - 同时覆盖 Element Plus 的 CSS 变量，做到「一处改、全局生效」
+
+   关于色值：这套红已经调浅过一档（初版 500 是 #C4341B，偏暗沉）。
+   但再浅就踩线 —— #CF4E31 的白字对比度只有 4.39，够不到 4.5，
+   所以实心色停在 #C94A2E（白字 4.66），文字/链接色用 #B8422A（对纸底 4.76）。
+   --brand-300 在 Element 里会当描边款文字色用，同样取 #B8422A 而不是更浅的粉
+   （#F3C0B2 落在白底上只有 1.6，读不出来）。
+   ============================================================================= */
+
+:root {
+  /* ---- 品牌色阶 ---- */
+  --brand-50:  #FBEDE9;
+  --brand-100: #F8DCD4;
+  --brand-200: #F3C0B2;
+  --brand-300: #B8422A;
+  --brand-400: #C4422A;
+  --brand-500: #C94A2E;
+  --brand-600: #A8351E;
+  --brand-700: #8E2312;
+  --brand-800: #6E1B0D;
+
+  /* ---- 中性色阶（暖灰，配暖纸底）---- */
+  --ink-900: #1B1A17;
+  --ink-800: #2A2721;
+  --ink-700: #3A3630;
+  --ink-600: #514C43;
+  --ink-500: #6B655A;
+  --ink-400: #8E877A;
+  --ink-300: #ADA496;
+  --ink-200: #D5CDBE;
+  --ink-100: #EAE4D9;
+  --ink-50:  #F5F1E9;
+
+  /* ---- 语义色（柔和版，用于标签/提示底色）---- */
+  --ok-500: #10B981;  --ok-50: #ECFDF5;   --ok-700: #047857;
+  --warn-500: #F59E0B; --warn-50: #FFFBEB; --warn-700: #B45309;
+  --danger-500: #EF4444; --danger-50: #FEF2F2; --danger-700: #B91C1C;
+  --info-500: #64748B; --info-50: #F1F5F9; --info-700: #334155;
+
+  /* ---- 表面与画布 ---- */
+  --surface: #FFFFFF;
+  --canvas: #F3EFE7;
+  --line: #E2DACB;
+  --line-soft: #EFEAE0;
+
+  /* ---- 圆角 ---- */
+  --radius-xs: 6px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
+  /* ---- 阴影（克制、层次清晰）---- */
+  --shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.05);
+  --shadow-sm: 0 2px 6px -2px rgba(16, 24, 40, 0.08), 0 8px 24px -14px rgba(16, 24, 40, 0.14);
+  --shadow-md: 0 10px 34px -14px rgba(16, 24, 40, 0.20);
+  --shadow-brand: 0 8px 20px -8px rgba(201, 74, 46, 0.42);
+
+  /* ---- 头像（不再用品牌渐变色块；品牌色留给动作）---- */
+  --avatar-bg: var(--ink-100);
+  --avatar-fg: var(--ink-700);
+
+  /* ---- 语义令牌（亮色）---- */
+  --text-strong: var(--ink-900);
+  --text-body: var(--ink-500);
+  --text-muted: var(--ink-400);
+  --text-faint: var(--ink-300);
+  --chip-bg: var(--ink-50);
+  --chip-brand-bg: var(--brand-50);
+  --chip-brand-text: var(--brand-700);
+  --chip-brand-border: var(--brand-100);
+  --header-bg: rgba(255, 255, 255, 0.86);
+  --sidebar-from: #1B1A17;
+  --sidebar-to: #201C16;
+  --hover-bg: var(--ink-50);
+  --sidebar-text: rgba(255, 255, 255, 0.72);
+  --sidebar-hover: rgba(255, 255, 255, 0.07);
+
+  /* ---- 侧栏毛玻璃：半透明底 + 24px 背景模糊 + 亮白描边 ---- */
+  --sidebar-glass: rgba(27, 26, 23, 0.42);
+  --sidebar-glass-blur: 24px;
+  --sidebar-edge: rgba(255, 255, 255, 0.55);
+  --sidebar-sheen: rgba(255, 255, 255, 0.26);
+  /* 浮在浅色内容上的玻璃（移动端抽屉、收起态浮层）：底子亮，玻璃要更实才压得住 */
+  --sidebar-glass-float: rgba(23, 22, 20, 0.8);
+
+  /* ---- 布局尺寸 ---- */
+  --app-header-height: 60px;
+  --app-sidebar-width: 232px;
+  /* 与 Element Plus el-menu--collapse 的 64px 对齐，避免收起时侧栏右侧留出 4px 空隙 */
+  --app-sidebar-collapsed-width: 64px;
+
+  /* ---- 字体 ---- */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', Consolas, Monaco, 'Courier New', monospace;
+
+  /* ========================= Element Plus 变量覆盖 ========================= */
+  --el-color-primary: var(--brand-500);
+  --el-color-primary-light-3: var(--brand-400);
+  --el-color-primary-light-5: var(--brand-300);
+  --el-color-primary-light-7: var(--brand-200);
+  --el-color-primary-light-8: var(--brand-100);
+  --el-color-primary-light-9: var(--brand-50);
+  --el-color-primary-dark-2: var(--brand-600);
+
+  --el-color-success: var(--ok-500);
+  --el-color-success-light-3: #34D399;
+  --el-color-success-light-5: #6EE7B7;
+  --el-color-success-light-7: #A7F3D0;
+  --el-color-success-light-8: #D1FAE5;
+  --el-color-success-light-9: var(--ok-50);
+  --el-color-success-dark-2: var(--ok-700);
+
+  --el-color-warning: var(--warn-500);
+  --el-color-warning-light-3: #FBBF24;
+  --el-color-warning-light-5: #FCD34D;
+  --el-color-warning-light-7: #FDE68A;
+  --el-color-warning-light-8: #FEF3C7;
+  --el-color-warning-light-9: var(--warn-50);
+  --el-color-warning-dark-2: var(--warn-700);
+
+  --el-color-danger: var(--danger-500);
+  --el-color-danger-light-3: #F87171;
+  --el-color-danger-light-5: #FCA5A5;
+  --el-color-danger-light-7: #FECACA;
+  --el-color-danger-light-8: #FEE2E2;
+  --el-color-danger-light-9: var(--danger-50);
+  --el-color-danger-dark-2: var(--danger-700);
+  --el-color-error: var(--danger-500);
+  --el-color-error-light-9: var(--danger-50);
+
+  --el-color-info: var(--info-500);
+  --el-color-info-light-3: #94A3B8;
+  --el-color-info-light-5: #CBD5E1;
+  --el-color-info-light-7: #E2E8F0;
+  --el-color-info-light-8: #EEF1F6;
+  --el-color-info-light-9: var(--info-50);
+  --el-color-info-dark-2: var(--info-700);
+
+  --el-text-color-primary: var(--ink-900);
+  --el-text-color-regular: var(--ink-500);
+  --el-text-color-secondary: var(--ink-400);
+  --el-text-color-placeholder: var(--ink-300);
+  --el-text-color-disabled: var(--ink-200);
+
+  --el-border-color: var(--line);
+  --el-border-color-light: var(--line-soft);
+  --el-border-color-lighter: var(--line-soft);
+  --el-border-color-extra-light: #F7F9FC;
+  --el-border-color-hover: var(--ink-200);
+
+  --el-fill-color: #F4F6FA;
+  --el-fill-color-light: var(--ink-50);
+  --el-fill-color-lighter: #FAFBFD;
+  --el-fill-color-blank: var(--surface);
+
+  --el-bg-color: var(--surface);
+  --el-bg-color-page: var(--canvas);
+  --el-bg-color-overlay: var(--surface);
+
+  --el-border-radius-base: var(--radius-sm);
+  --el-border-radius-small: var(--radius-xs);
+  --el-border-radius-round: 999px;
+
+  --el-font-family: var(--font-sans);
+  --el-font-size-base: 14px;
+
+  --el-box-shadow: var(--shadow-sm);
+  --el-box-shadow-light: var(--shadow-xs);
+  --el-box-shadow-lighter: var(--shadow-xs);
+  --el-box-shadow-dark: var(--shadow-md);
+
+  --el-disabled-bg-color: #F7F9FC;
+  --el-disabled-text-color: var(--ink-300);
+  --el-disabled-border-color: var(--line);
+
+  --el-table-border-color: var(--line-soft);
+  --el-table-header-bg-color: #F9FAFC;
+  --el-table-header-text-color: var(--ink-500);
+  --el-table-row-hover-bg-color: var(--brand-50);
+  --el-table-current-row-bg-color: var(--brand-50);
+
+  --el-menu-active-color: #FFFFFF;
+}
+
+/* 深色主题：给 html 加 class="dark" 即生效（顶栏按钮负责切换） */
+html.dark {
+  --surface: #23201A;
+  --canvas: #1B1A17;
+  --line: #3A362F;
+  --line-soft: #2E2B25;
+
+  /* 语义令牌翻转 */
+  --text-strong: #EFEAE0;
+  --text-body: #C6BDAF;
+  --text-muted: #9A9184;
+  --text-faint: #6E665C;
+  --chip-bg: #2C2922;
+  --chip-brand-bg: rgba(196, 52, 27, 0.18);
+  --chip-brand-text: #F0A794;
+  --chip-brand-border: rgba(196, 52, 27, 0.38);
+  --header-bg: rgba(35, 32, 26, 0.86);
+  --hover-bg: #2E2B25;
+  /* 深色下环境本身已经很暗，玻璃层要更实一点才不会发灰 */
+  --sidebar-glass: rgba(23, 22, 20, 0.6);
+  --sidebar-edge: rgba(255, 255, 255, 0.4);
+  --sidebar-sheen: rgba(255, 255, 255, 0.16);
+  --el-bg-color: var(--surface);
+  --el-bg-color-page: var(--canvas);
+  --el-bg-color-overlay: #2B2822;
+  --el-text-color-primary: #EFEAE0;
+  --el-text-color-regular: #C6BDAF;
+  --el-text-color-secondary: #9A9184;
+  --el-border-color: var(--line);
+  --el-border-color-light: var(--line-soft);
+  --el-fill-color-light: #2C2922;
+  --el-fill-color-lighter: #2B2822;
+  --el-table-header-bg-color: #2B2822;
+  --el-table-header-text-color: #C6BDAF;
+  --el-table-row-hover-bg-color: #2E2B25;
+  --el-fill-color-blank: var(--surface);
+  --el-disabled-bg-color: #2C2922;
+  --el-disabled-text-color: #6E665C;
+  --el-disabled-border-color: var(--line);
+}

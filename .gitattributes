@@ -1,0 +1,25 @@
+# 换行符统一为 LF。
+# 必须在首次提交前生效：否则在 Windows 上开发、提交 CRLF，到了 Linux 服务器上
+# deploy/linux/*.sh 会以 “\r: command not found” 失败 —— 这类问题排查起来很费时间。
+* text=auto eol=lf
+
+# Windows 专用脚本保留 CRLF（PowerShell / cmd 对 LF 的兼容性不如 bash 稳定）
+*.ps1 text eol=crlf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# 二进制文件不做任何换行或编码转换
+*.jpg  binary
+*.jpeg binary
+*.png  binary
+*.gif  binary
+*.webp binary
+*.ico  binary
+*.pdf  binary
+*.xlsx binary
+*.woff binary
+*.woff2 binary
+
+# 语言统计：把构建产物和锁文件排除在 diffs/统计之外
+dist/** linguist-generated
+package-lock.json linguist-generated

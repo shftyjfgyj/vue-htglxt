@@ -1,0 +1,50 @@
+# Prometheus 告警规则示例（放置到 /etc/prometheus/rules/htglxt.yml）
+groups:
+  - name: htglxt-api
+    rules:
+      - alert: ApiDown
+        expr: up{job="htglxt-api"} == 0
+        for: 1m
+        labels: { severity: critical }
+        annotations:
+          summary: "后台管理 API 不可用"
+          description: "{{ $labels.instance }} 已连续 1 分钟无法抓取"
+
+      - alert: ApiHighErrorRate
+        expr: |
+          sum(rate(http_request_errors_total[5m])) by (route)
+            / clamp_min(sum(rate(http_requests_total[5m])) by (route), 0.001) > 0.05
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "接口 5xx/4xx 比例超过 5%"
+          description: "route={{ $labels.route }}"
+
+      - alert: ApiSlowRequests
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le, route)) > 1
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "接口 P95 耗时超过 1s"
+          description: "route={{ $labels.route }}"
+
+      - alert: ApiHeapHigh
+        expr: nodejs_heap_used_bytes > 400 * 1024 * 1024
+        for: 10m
+        labels: { severity: warning }
+        annotations:
+          summary: "Node 堆内存超过 400MB，注意内存泄漏"
+
+      - alert: LoginFailureSpike
+        expr: sum(increase(app_business_events_total{event="login_failed"}[10m])) > 50
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "10 分钟内登录失败超过 50 次，疑似暴力破解"
+
+      - alert: NoTraffic
+        expr: sum(rate(http_requests_total[10m])) == 0
+        for: 15m
+        labels: { severity: info }
+        annotations:
+          summary: "15 分钟无任何请求，确认是否预期"

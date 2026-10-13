@@ -1,0 +1,15 @@
+{
+  "name": "vue-htglxt",
+  "version": "1.0.0",
+  "private": true,
+  "description": "后台管理系统（Vue3 + Node + MySQL）重写工程",
+  "scripts": {
+    "dev:server": "npm --prefix apps/server run dev",
+    "dev:web": "npm --prefix apps/web run dev",
+    "setup": "npm --prefix apps/server install && npm --prefix apps/web install",
+    "db:migrate": "npm --prefix apps/server run db:migrate",
+    "seed:content": "npm --prefix apps/server run seed:content",
+    "build": "npm --prefix apps/server run build && npm --prefix apps/web run build",
+    "test": "npm --prefix apps/server test && npm --prefix apps/web run typecheck"
+  }
+}

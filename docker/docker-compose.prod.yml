@@ -1,0 +1,96 @@
+# =====================================================================
+# 生产部署（阿里云 ECS + RDS MySQL + 域名 HTTPS）
+# 与 docker-compose.yml 的区别：
+#   1. 不含 mysql 服务 —— 用阿里云 RDS（自动备份、免运维）
+#   2. api 不对外暴露端口，只由 web 容器的 nginx 反向代理
+#   3. web 挂载生产 nginx 配置与证书，监听 80/443
+#   4. 迁移作业带 SEED_DEMO=false，生产库保持空系统
+# 用法见 docs/部署-阿里云ECS与RDS.md
+# =====================================================================
+services:
+  api:
+    build:
+      context: ../apps/server
+      dockerfile: Dockerfile
+      # 国内 ECS 拉不到 Docker Hub 时，在 docker/.env 里设置 NODE_IMAGE 指向加速源
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:-node:22-bookworm-slim}
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmmirror.com}
+    image: htglxt-api:latest
+    container_name: htglxt-api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      TZ: Asia/Shanghai
+    volumes:
+      - upload-data:/app/uploads
+    expose:
+      - "3001"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3001/health/live"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "5" }
+
+  # 一次性迁移作业：docker compose --profile tools run --rm migrate
+  migrate:
+    build:
+      context: ../apps/server
+      dockerfile: Dockerfile
+    image: htglxt-api:latest
+    profiles: ["tools"]
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      DB_HOST: ${DB_HOST:?请在 docker/.env 配置 RDS 地址}
+      SEED_DEMO: "false"
+    command: ["node", "dist/db/migrate.js"]
+
+  web:
+    build:
+      context: ../apps/web
+      dockerfile: Dockerfile
+      args:
+        NODE_IMAGE: ${NODE_IMAGE_WEB:-node:22-alpine}
+        NGINX_IMAGE: ${NGINX_IMAGE:-nginx:1.27-alpine}
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmmirror.com}
+    image: htglxt-web:latest
+    container_name: htglxt-web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      # 生效的 nginx 配置：首次上线用 http-only，证书就绪后换成 htglxt.prod.conf
+      #   cp deploy/nginx/htglxt.prod.http-only.conf deploy/nginx/active.conf   # 首次
+      #   cp deploy/nginx/htglxt.prod.conf          deploy/nginx/active.conf   # 切 HTTPS
+      - ../deploy/nginx/active.conf:/etc/nginx/conf.d/default.conf:ro
+      - ../deploy/nginx/certs:/etc/nginx/certs:ro
+      - certbot-webroot:/var/www/certbot
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "5" }
+
+  # 可选：Let's Encrypt 自动签发/续期（用阿里云证书的话不需要它）
+  certbot:
+    image: certbot/certbot:latest
+    profiles: ["certs"]
+    volumes:
+      - ../deploy/nginx/certs:/etc/letsencrypt
+      - certbot-webroot:/var/www/certbot
+    entrypoint: /bin/sh -c 'trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait ${!}; done'
+
+volumes:
+  upload-data:
+  certbot-webroot:

@@ -1,0 +1,11 @@
+# Prometheus 抓取配置示例（追加到 scrape_configs）
+scrape_configs:
+  - job_name: htglxt-api
+    metrics_path: /metrics
+    scheme: http
+    # 若后端设置了 METRICS_TOKEN，这里同步配置
+    # bearer_token: <token>
+    static_configs:
+      - targets: ['127.0.0.1:3001']
+        labels:
+          env: prod

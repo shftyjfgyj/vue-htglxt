@@ -1,0 +1,51 @@
+# =====================================================================
+# 保活：让 Render 免费实例不要睡着（可选）
+#
+# 背景：Render 免费 Web Service 空闲 15 分钟会休眠，下一个请求要等约 1 分钟冷启动。
+#       前端已经做了「唤醒中」的友好等待（见 apps/web/src/api/http.ts），
+#       但如果你希望别人点进来就是热的，可以开这个定时 ping。
+#
+# 小时预算：免费档给 750 实例小时/月，而一个月约 730 小时 ——
+#       也就是说「一个服务 24 小时常开」刚好放得下，不会超。
+#       但如果你以后又加了第二个免费服务，就会互相抢这 750 小时。
+#
+# 用法：
+#   1. 仓库 Settings → Secrets and variables → Actions → New repository secret
+#      名称 RENDER_HEALTH_URL，值形如 https://htglxt-server.onrender.com/health
+#   2. 推到 GitHub 后即生效；也可以在 Actions 页面手动 workflow_dispatch 触发
+#
+# 已知限制（不要指望它 100% 可靠）：
+#   - GitHub 的定时任务在高峰期可能延迟几分钟到几十分钟
+#   - 仓库连续 60 天无提交，定时任务会被 GitHub 自动停用
+#   - 因此前端那层「唤醒中」的兜底仍然必要，不能只靠保活
+#
+# 替代方案（更准时）：
+#   - UptimeRobot 免费档：5 分钟间隔的 HTTP 监控
+#   - cron-job.org：免费定时请求
+# =====================================================================
+name: keep-alive
+
+on:
+  schedule:
+    # 每 10 分钟一次，短于 Render 的 15 分钟休眠阈值
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        env:
+          HEALTH_URL: ${{ secrets.RENDER_HEALTH_URL }}
+        run: |
+          if [ -z "$HEALTH_URL" ]; then
+            echo "未配置 RENDER_HEALTH_URL secret，跳过"
+            exit 0
+          fi
+          # 冷启动可能耗时较久，给足超时；失败也不让整个任务标红
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 120 "$HEALTH_URL" || echo '000')
+          echo "健康检查返回 $code"
+          if [ "$code" != "200" ]; then
+            echo "::warning::健康检查未返回 200（当前 $code），服务可能仍在唤醒或已异常"
+          fi
