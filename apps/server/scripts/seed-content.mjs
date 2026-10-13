@@ -23,17 +23,30 @@ const ENV_FILE = path.join(__dirname, '..', '.env');
 
 // ---------------------------------------------------------------- 环境
 function loadEnv() {
-  const env = {};
+  // 环境变量优先，文件只补齐缺失项（与 dotenv 的语义一致）。
+  // 这样「本机跑脚本、连远程库」时可以临时注入 DB_HOST/DB_PASSWORD 等，不必改 .env。
+  const env = { ...process.env };
   if (!fs.existsSync(ENV_FILE)) return env;
   for (const line of fs.readFileSync(ENV_FILE, 'utf8').split(/\r?\n/)) {
     if (!line || line.trim().startsWith('#')) continue;
     const index = line.indexOf('=');
     if (index === -1) continue;
-    env[line.slice(0, index).trim()] = line.slice(index + 1).trim();
+    const key = line.slice(0, index).trim();
+    if (env[key] === undefined) env[key] = line.slice(index + 1).trim();
   }
   return env;
 }
 const env = loadEnv();
+
+/** 托管 MySQL（Aiven / RDS）强制 SSL，漏了这项就会「本地能跑、远程连不上」 */
+function buildSsl() {
+  const mode = String(env.DB_SSL ?? 'disable').trim();
+  if (mode === 'disable') return undefined;
+  if (mode === 'require') return { rejectUnauthorized: false };
+  const raw = String(env.DB_SSL_CA ?? '').trim();
+  const ca = raw.includes('BEGIN CERTIFICATE') ? raw : fs.readFileSync(raw, 'utf8');
+  return { rejectUnauthorized: true, ca };
+}
 
 // ---------------------------------------------------------------- 可复现随机
 function mulberry32(seed) {
@@ -59,10 +72,19 @@ const CATEGORIES = [
   { key: 'career', name: '职场', alias: 'career', sort: 6, authors: ['admin', 'editor'] }
 ];
 
+/**
+ * 演示作者。
+ *
+ * 注意：lxy / csy 在开发机上是很早手工建的，但脚本不能假设它们存在 ——
+ * 换一个全新的库（例如线上 Aiven）跑就会「找不到作者账号」。
+ * 这里把脚本用到的人全部列进来，缺失就创建、已存在就补齐昵称与角色。
+ */
 const NEW_USERS = [
   { username: 'suwan', nickname: '苏晚', role: 'editor' },
   { username: 'zhouye', nickname: '周野', role: 'editor' },
-  { username: 'linxiaoman', nickname: '林小满', role: 'editor' }
+  { username: 'linxiaoman', nickname: '林小满', role: 'editor' },
+  { username: 'lxy', nickname: '李熙瑶', role: 'editor' },
+  { username: 'csy', nickname: '陈十一', role: 'editor' }
 ];
 const NEW_USER_PASSWORD = 'Demo@123456';
 
@@ -182,6 +204,7 @@ async function main() {
     user: env.DB_USER ?? 'root',
     password: env.DB_PASSWORD ?? '',
     database: env.DB_DATABASE ?? 'htglxt_v2',
+    ssl: buildSsl(),
     multipleStatements: true
   });
   activeConnection = connection;

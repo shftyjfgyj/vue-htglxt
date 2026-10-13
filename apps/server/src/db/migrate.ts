@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
 import { env } from '../config/env.js';
+import { buildDbSsl } from '../config/db-ssl.js';
 import { logger } from '../common/logger.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -51,6 +52,9 @@ async function run(): Promise<void> {
 
   const root = await mysql.createConnection({
     host: env.DB_HOST, port: env.DB_PORT, user: env.DB_USER, password: env.DB_PASSWORD,
+    // 必须带上 TLS：Aiven / RDS 等托管库强制 SSL，
+    // 漏了这一项就会出现「本地能迁、线上连不上」
+    ssl: buildDbSsl(),
     multipleStatements: true
   });
 
